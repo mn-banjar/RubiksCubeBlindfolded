@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+        <script type="text/javascript" src="release/RubikjsCore.js"></script>
+        <script type="text/javascript" src="release/RubikjsRender.js"></script>
+        <script type="text/javascript" src="release/RubikjsRenderWebGL.js"></script>
+        <script type="text/javascript" src="release/RubikjsRenderCanvas.js"></script>
+        <script type="text/javascript" src="release/RubikjsNotation.js"></script>
+        <script type="text/javascript" src="release/RubikjsTwisty.js"></script>
+        <script type="text/javascript" src="Puzzles/ClassicRubiksCube.js"></script>
+	<style>
+	.body {
+		margin: 0;
+	}
+	.wrapper {
+		text-align: center;
+		width: 100%;
+	}
+	input { 
+		text-align: center; 
+	}
+	.header {
+		background-color: #ddd;
+		padding: 20px 10px;
+		text-align: center; 
+	}
+	</style>
+</head>
+<body>
+<div class="header">
+	<h2>Rubik's Cube Blindfolded!</h2>
+</div>
+
+<div class="wrapper">
+	<br>
+	<p><b>Setting the cube colors</b></p>
+	U <select id="Uface">
+	  <option selected="selected" value="white">White</option>
+	  <option value="yellow">Yellow</option>
+	  <option value="red">Red</option>
+	  <option value="orange">Orange</option>
+	  <option value="blue">Blue</option>
+	  <option value="green">Green</option>
+	</select>
+	&nbsp;&nbsp;R <select id="Rface">
+	  <option value="white">White</option>
+	  <option value="yellow">Yellow</option>
+	  <option value="red">Red</option>
+	  <option selected="selected" value="orange">Orange</option>
+	  <option value="blue">Blue</option>
+	  <option value="green">Green</option>
+	</select>
+	&nbsp;&nbsp;F <select id="Fface">
+	  <option value="white">White</option>
+	  <option value="yellow">Yellow</option>
+	  <option value="red">Red</option>
+	  <option value="orange">Orange</option>
+	  <option selected="selected" value="blue">Blue</option>
+	  <option value="green">Green</option>
+	</select>
+	&nbsp;&nbsp;D <select id="Dface">
+	  <option value="white">White</option>
+	  <option selected="selected" value="yellow">Yellow</option>
+	  <option value="red">Red</option>
+	  <option value="orange">Orange</option>
+	  <option value="blue">Blue</option>
+	  <option value="green">Green</option>
+	</select>
+	&nbsp;&nbsp;L <select id="Lface">
+	  <option value="white">White</option>
+	  <option value="yellow">Yellow</option>
+	  <option selected="selected" value="red">Red</option>
+	  <option value="orange">Orange</option>
+	  <option value="blue">Blue</option>
+	  <option value="green">Green</option>
+	</select>
+	&nbsp;&nbsp;B <select id="Bface">
+	  <option value="white">White</option>
+	  <option value="yellow">Yellow</option>
+	  <option value="red">Red</option>
+	  <option value="orange">Orange</option>
+	  <option value="blue">Blue</option>
+	  <option selected="selected" value="green">Green</option>
+	</select>
+	&nbsp;<button type="button" id="BtnColor" onclick="color()">Set colors</button>
+	<br><br>
+	<table id="3D_cube" align="center">
+		<tr>
+			<td>
+				<div>
+					<canvas id="cube" width="200" height="200"></canvas>
+				</div>
+			</td>
+			<td width="7%"></td>
+			<td>
+				<p><b>Rotating the cube</b></p>
+				<button type="button" id="BtnU0" onclick="UpClockwise()">U</button>
+				<button type="button" id="BtnU1" onclick="UpCounterClockwise()">U'</button>
+				<button type="button" id="BtnR0" onclick="RightClockwise()">R</button>
+				<button type="button" id="BtnR1" onclick="RightCounterClockwise()">R'</button>
+				<button type="button" id="BtnF0" onclick="FrontClockwise()">F</button>
+				<button type="button" id="BtnF1" onclick="FrontCounterClockwise()">F'</button>
+				<button type="button" id="BtnD0" onclick="DownClockwise()">D</button>
+				<button type="button" id="BtnD1" onclick="DownCounterClockwise()">D'</button>
+				<button type="button" id="BtnL0" onclick="LeftClockwise()">L</button>
+				<button type="button" id="BtnL1" onclick="LeftCounterClockwise()">L'</button>
+				<button type="button" id="BtnB0" onclick="BackClockwise()">B</button>
+				<button type="button" id="BtnB1" onclick="BackCounterClockwise()">B'</button>
+				<input type="hidden" size="150" id="algorithm" value="" /><br>
+				<p id="rotation"></p>
+				<button type="button" id="BtnReset" onclick="reset()">reset</button>
+			</td>
+		</tr>
+	</table>
+	<br>
+	<form>
+	  <b>Selecting memorizing technique</b><br><br>
+	  <input type="radio" id="radFirstTech" onclick="tech1()">Same char. for <u>whole cube</u> face
+	  &nbsp;&nbsp;<input type="radio" id="radSecondTech" onclick="tech2()">Uniuqe char. for <u>each cubie</u> face
+	</form><br>
+	<div id="firstTech" style="display:none">
+		<p><b>Selecting the displayed elements</b><p>
+		<input type="checkbox" id="chFaceLetter" checked>Face letter
+		&nbsp;&nbsp;<input type="checkbox" id="chFaceName">Face Name
+		&nbsp;&nbsp;<input type="checkbox" id="chColorName">Color Name
+		&nbsp;&nbsp;<input type="checkbox" id="chColors">Colors
+		&nbsp;&nbsp;<input type="checkbox" id="chPictures" checked>Pictures (blind area: back-down edge)
+		&nbsp;&nbsp;<input type="checkbox" id="chOthers">Others (ex. A-Z,0-9)
+		<br><br>
+		Assigning other characters: U <input type="text" id="textU" maxlength="1" size="1" disabled>
+		&nbsp;&nbsp;R <input type="text" id="textR" maxlength="1" size="1" disabled>
+		&nbsp;&nbsp;F <input type="text" id="textF" maxlength="1" size="1" disabled>
+		&nbsp;&nbsp;D <input type="text" id="textD" maxlength="1" size="1" disabled>
+		&nbsp;&nbsp;L <input type="text" id="textL" maxlength="1" size="1" disabled>
+		&nbsp;&nbsp;B <input type="text" id="textB" maxlength="1" size="1" disabled>
+		<p><i>*Note: For the pictures, YELLOW piece is the buffer, BLUE color represents the swapped face and the RED for the rset.</i></p>
+		<button type="button" id="BtnSolve" onclick="solveEdge()">Edge Solve</button>
+		&nbsp;<button type="button" id="BtnSolve1" onclick="solveCorner()">Corner Solve</button>
+		&nbsp;<button type="button" id="BtnClear" onclick="clearTable()">Clear</button>
+	</div>
+	<div id="secondTech" style="display:none">
+		<br>
+		<table align="center">
+		<tr>
+			<td >
+				<input type="checkbox" id="chOthers2">Assigning other char<br><br>
+				U1 <input type="text" id="textU1" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;R1 <input type="text" id="textR1" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;F1 <input type="text" id="textF1" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;D1 <input type="text" id="textD1" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;L1 <input type="text" id="textL1" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;B1 <input type="text" id="textB1" maxlength="2" size="2" disabled>
+				<br><br>
+				U2 <input type="text" id="textU2" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;R2 <input type="text" id="textR2" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;F2 <input type="text" id="textF2" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;D2 <input type="text" id="textD2" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;L2 <input type="text" id="textL2" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;B2 <input type="text" id="textB2" maxlength="2" size="2" disabled>
+				<br><br>
+				U3 <input type="text" id="textU3" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;R3 <input type="text" id="textR3" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;F3 <input type="text" id="textF3" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;D3 <input type="text" id="textD3" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;L3 <input type="text" id="textL3" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;B3 <input type="text" id="textB3" maxlength="2" size="2" disabled>
+				<br><br>
+				U4 <input type="text" id="textU4" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;R4 <input type="text" id="textR4" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;F4 <input type="text" id="textF4" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;D4 <input type="text" id="textD4" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;L4 <input type="text" id="textL4" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;B4 <input type="text" id="textB4" maxlength="2" size="2" disabled>
+				<br><br>
+				U6 <input type="text" id="textU6" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;R6 <input type="text" id="textR6" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;F6 <input type="text" id="textF6" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;D6 <input type="text" id="textD6" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;L6 <input type="text" id="textL6" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;B6 <input type="text" id="textB6" maxlength="2" size="2" disabled>
+				<br><br>
+				U7 <input type="text" id="textU7" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;R7 <input type="text" id="textR7" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;F7 <input type="text" id="textF7" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;D7 <input type="text" id="textD7" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;L7 <input type="text" id="textL7" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;B7 <input type="text" id="textB7" maxlength="2" size="2" disabled>
+				<br><br>
+				U8 <input type="text" id="textU8" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;R8 <input type="text" id="textR8" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;F8 <input type="text" id="textF8" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;D8 <input type="text" id="textD8" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;L8 <input type="text" id="textL8" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;B8 <input type="text" id="textB8" maxlength="2" size="2" disabled>
+				<br><br>
+				U9 <input type="text" id="textU9" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;R9 <input type="text" id="textR9" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;F9 <input type="text" id="textF9" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;D9 <input type="text" id="textD9" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;L9 <input type="text" id="textL9" maxlength="2" size="2" disabled>
+				&nbsp;&nbsp;B9 <input type="text" id="textB9" maxlength="2" size="2" disabled>
+				<br><br>
+			</td>
+			<td width="40%" align="left">
+				<img src="pic/Picture1.png" width="70%" height="40%">
+			</td>
+		</tr>
+		</table>
+		<br>
+		<button type="button" id="BtnSolve2" onclick="solveEdge()">Edge Solve</button>
+		&nbsp;<button type="button" id="BtnSolve3" onclick="solveCorner()">Corner Solve</button>
+		&nbsp;<button type="button" id="BtnClear1" onclick="clearSequence()">Clear</button><br>
+		<p id="edgeSeq"></p>
+		<p id="cornerSeq"></p>
+	</div>
+	
+	
+	
+	<br><br>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<table id="model_table" align="center">
+
+	</table>
+</div>
+
+<script>
+function tech1()
+{
+	if (document.getElementById('radFirstTech').checked)
+		document.getElementById('firstTech').style.display = 'block';
+		document.getElementById('secondTech').style.display = 'none';
+		document.getElementById('radSecondTech').checked = false;
+		document.getElementById('chFaceLetter').checked = true;
+		document.getElementById('chPictures').checked = true;
+		$("#model_table tr").remove();
+}
+function tech2()
+{
+	if (document.getElementById('radSecondTech').checked)
+		document.getElementById('secondTech').style.display = 'block';
+		document.getElementById('firstTech').style.display = 'none';
+		document.getElementById('radFirstTech').checked = false;
+		document.getElementById('chFaceLetter').checked = false;
+		document.getElementById('chFaceName').checked = false;
+		document.getElementById('chColors').checked = false;
+		document.getElementById('chColorName').checked = false;
+		document.getElementById('chPictures').checked = false;
+		document.getElementById('chOthers').checked = false;
+		$("#model_table tr").remove();
+		document.getElementById("edgeSeq").innerHTML = "";
+		document.getElementById("cornerSeq").innerHTML = "";	
+}
+document.getElementById('chOthers').onchange = function() {
+			document.getElementById('textU').disabled = !this.checked;
+			document.getElementById('textR').disabled = !this.checked;
+			document.getElementById('textF').disabled = !this.checked;
+			document.getElementById('textD').disabled = !this.checked;
+			document.getElementById('textL').disabled = !this.checked;
+			document.getElementById('textB').disabled = !this.checked;
+		};
+document.getElementById('chOthers2').onchange = function() {
+			document.getElementById('textU1').disabled = !this.checked;
+			document.getElementById('textR1').disabled = !this.checked;
+			document.getElementById('textF1').disabled = !this.checked;
+			document.getElementById('textD1').disabled = !this.checked;
+			document.getElementById('textL1').disabled = !this.checked;
+			document.getElementById('textB1').disabled = !this.checked;
+			
+			document.getElementById('textU2').disabled = !this.checked;
+			document.getElementById('textR2').disabled = !this.checked;
+			document.getElementById('textF2').disabled = !this.checked;
+			document.getElementById('textD2').disabled = !this.checked;
+			document.getElementById('textL2').disabled = !this.checked;
+			document.getElementById('textB2').disabled = !this.checked;
+			
+			document.getElementById('textU3').disabled = !this.checked;
+			document.getElementById('textR3').disabled = !this.checked;
+			document.getElementById('textF3').disabled = !this.checked;
+			document.getElementById('textD3').disabled = !this.checked;
+			document.getElementById('textL3').disabled = !this.checked;
+			document.getElementById('textB3').disabled = !this.checked;
+			
+			document.getElementById('textU4').disabled = !this.checked;
+			document.getElementById('textR4').disabled = !this.checked;
+			document.getElementById('textF4').disabled = !this.checked;
+			document.getElementById('textD4').disabled = !this.checked;
+			document.getElementById('textL4').disabled = !this.checked;
+			document.getElementById('textB4').disabled = !this.checked;
+			
+			document.getElementById('textU6').disabled = !this.checked;
+			document.getElementById('textR6').disabled = !this.checked;
+			document.getElementById('textF6').disabled = !this.checked;
+			document.getElementById('textD6').disabled = !this.checked;
+			document.getElementById('textL6').disabled = !this.checked;
+			document.getElementById('textB6').disabled = !this.checked;
+			
+			document.getElementById('textU7').disabled = !this.checked;
+			document.getElementById('textR7').disabled = !this.checked;
+			document.getElementById('textF7').disabled = !this.checked;
+			document.getElementById('textD7').disabled = !this.checked;
+			document.getElementById('textL7').disabled = !this.checked;
+			document.getElementById('textB7').disabled = !this.checked;
+			
+			document.getElementById('textU8').disabled = !this.checked;
+			document.getElementById('textR8').disabled = !this.checked;
+			document.getElementById('textF8').disabled = !this.checked;
+			document.getElementById('textD8').disabled = !this.checked;
+			document.getElementById('textL8').disabled = !this.checked;
+			document.getElementById('textB8').disabled = !this.checked;
+			
+			document.getElementById('textU9').disabled = !this.checked;
+			document.getElementById('textR9').disabled = !this.checked;
+			document.getElementById('textF9').disabled = !this.checked;
+			document.getElementById('textD9').disabled = !this.checked;
+			document.getElementById('textL9').disabled = !this.checked;
+			document.getElementById('textB9').disabled = !this.checked;
+		};
+		
+var rubiksCube = [["U1", "U2", "U3", "U4", "U5", "U6", "U7", "U8", "U9"],
+				 ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9"],
+				 ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"],	
+				 ["D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9"],
+				 ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9"],
+				 ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9"]];
+
+var cubeCopy;
+var rotations = new Array();
+var edge = new Array();
+var corner = new Array();
+
+function reset()
+{
+	rubiksCube = [["U1", "U2", "U3", "U4", "U5", "U6", "U7", "U8", "U9"],
+				 ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9"],
+				 ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"],	
+				 ["D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9"],
+				 ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9"],
+				 ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9"]];
+	console.log(rubiksCube);
+	rotations = [];
+	edge = [];
+	corner = [];
+	document.getElementById("rotation").innerHTML = "" + rotations;
+	restart();
+}			
+
+function clockwise(center)
+{
+	rubiksCube[center][0] = cubeCopy[center][6]; //rotating face
+	rubiksCube[center][1] = cubeCopy[center][3];
+	rubiksCube[center][2] = cubeCopy[center][0];
+	rubiksCube[center][3] = cubeCopy[center][7];
+	rubiksCube[center][5] = cubeCopy[center][1];
+	rubiksCube[center][6] = cubeCopy[center][8];
+	rubiksCube[center][7] = cubeCopy[center][5];
+	rubiksCube[center][8] = cubeCopy[center][2]; 
+}
+
+function counterClockwide(center, right, left, up, down)
+{
+	rubiksCube[center][0] = cubeCopy[center][2]; //rotating face
+	rubiksCube[center][1] = cubeCopy[center][5];
+	rubiksCube[center][2] = cubeCopy[center][8];
+	rubiksCube[center][3] = cubeCopy[center][1];
+	rubiksCube[center][5] = cubeCopy[center][7];
+	rubiksCube[center][6] = cubeCopy[center][0];
+	rubiksCube[center][7] = cubeCopy[center][3];
+	rubiksCube[center][8] = cubeCopy[center][6]; 
+}
+
+//**Up			
+function UpClockwise()
+{
+	cubeCopy = rubiksCube.map(function(arr) {
+		return arr.slice();
+	});
+	
+	clockwise(0); //center
+	
+	rubiksCube[1][0] = cubeCopy[5][0]; //right side
+	rubiksCube[1][1] = cubeCopy[5][1];
+	rubiksCube[1][2] = cubeCopy[5][2];
+	
+	rubiksCube[2][0] = cubeCopy[1][0]; //down side
+	rubiksCube[2][1] = cubeCopy[1][1];
+	rubiksCube[2][2] = cubeCopy[1][2];
+	
+	rubiksCube[4][0] = cubeCopy[2][0]; //left side
+	rubiksCube[4][1] = cubeCopy[2][1];
+	rubiksCube[4][2] = cubeCopy[2][2];
+	
+	rubiksCube[5][0] = cubeCopy[4][0]; //up side
+	rubiksCube[5][1] = cubeCopy[4][1];
+	rubiksCube[5][2] = cubeCopy[4][2];
+	
+	console.log("rotating U");
+	console.log(rubiksCube);
+	rotations.push(" U");
+	document.getElementById("rotation").innerHTML = "Rotations: " + rotations;
+	document.getElementById("algorithm").value = "U";
+	domoves();
+}
+
+function UpCounterClockwise()
+{
+	cubeCopy = rubiksCube.map(function(arr) {
+		return arr.slice();
+	});
+	
+	counterClockwide(0); //center
+	
+	rubiksCube[1][0] = cubeCopy[2][0]; //right side
+	rubiksCube[1][1] = cubeCopy[2][1];
+	rubiksCube[1][2] = cubeCopy[2][2];
+	
+	rubiksCube[2][0] = cubeCopy[4][0]; //down side
+	rubiksCube[2][1] = cubeCopy[4][1];
+	rubiksCube[2][2] = cubeCopy[4][2];
+	
+	rubiksCube[4][0] = cubeCopy[5][0]; //left side
+	rubiksCube[4][1] = cubeCopy[5][1];
+	rubiksCube[4][2] = cubeCopy[5][2];
+	
+	rubiksCube[5][0] = cubeCopy[1][0]; //up side
+	rubiksCube[5][1] = cubeCopy[1][1];
+	rubiksCube[5][2] = cubeCopy[1][2];
+	
+	console.log("rotating U'");
+	rotations.push(" U'");
+	document.getElementById("rotation").innerHTML = "Rotations: " + rotations;
+	document.getElementById("algorithm").value = "U'";
+	domoves();
+}
+
+//**Right
+function RightClockwise()
+{
+	cubeCopy = rubiksCube.map(function(arr) {
+		return arr.slice();
+	});
+	
+	clockwise(1); //center
+	
+	rubiksCube[5][0] = cubeCopy[0][8]; //right side
+	rubiksCube[5][3] = cubeCopy[0][5];
+	rubiksCube[5][6] = cubeCopy[0][2];
+	
+	rubiksCube[3][2] = cubeCopy[5][6]; //down side
+	rubiksCube[3][5] = cubeCopy[5][3];
+	rubiksCube[3][8] = cubeCopy[5][0];
+	
+	rubiksCube[2][2] = cubeCopy[3][2]; //left side
+	rubiksCube[2][5] = cubeCopy[3][5];
+	rubiksCube[2][8] = cubeCopy[3][8];
+	
+	rubiksCube[0][2] = cubeCopy[2][2]; //up side
+	rubiksCube[0][5] = cubeCopy[2][5];
+	rubiksCube[0][8] = cubeCopy[2][8];
+	
+	console.log("rotating R");
+	console.log(rubiksCube);
+	rotations.push(" R");
+	document.getElementById("rotation").innerHTML = "Rotations: " + rotations;
+	document.getElementById("algorithm").value = "R";
+	domoves();
+}
+
+function RightCounterClockwise()
+{
+	cubeCopy = rubiksCube.map(function(arr) {
+		return arr.slice();
+	});
+	
+	counterClockwide(1); //center
+	
+	rubiksCube[5][0] = cubeCopy[3][8]; //right side
+	rubiksCube[5][3] = cubeCopy[3][5];
+	rubiksCube[5][6] = cubeCopy[3][2];
+	
+	rubiksCube[3][2] = cubeCopy[2][2]; //down side
+	rubiksCube[3][5] = cubeCopy[2][5];
+	rubiksCube[3][8] = cubeCopy[2][8];
+	
+	rubiksCube[2][2] = cubeCopy[0][2]; //left side
+	rubiksCube[2][5] = cubeCopy[0][5];
+	rubiksCube[2][8] = cubeCopy[0][8];
+	
+	rubiksCube[0][2] = cubeCopy[5][6]; //up side
+	rubiksCube[0][5] = cubeCopy[5][3];
+	rubiksCube[0][8] = cubeCopy[5][0];
+	
+	console.log("rotating R'");
+	console.log(rubiksCube);
+	rotations.push(" R'");
+	document.getElementById("rotation").innerHTML = "Rotations: " + rotations;
+	document.getElementById("algorithm").value = "R'";
+	domoves();
+}
+
+//**Front
+function FrontClockwise()
+{
+	cubeCopy = rubiksCube.map(function(arr) {
+		return arr.slice();
+	});
+	
+	clockwise(2); //center
+	
+	rubiksCube[1][0] = cubeCopy[0][6]; //right side
+	rubiksCube[1][3] = cubeCopy[0][7];
+	rubiksCube[1][6] = cubeCopy[0][8];
+	
+	rubiksCube[3][0] = cubeCopy[1][6]; //down side
+	rubiksCube[3][1] = cubeCopy[1][3];
+	rubiksCube[3][2] = cubeCopy[1][0];
+	
+	rubiksCube[4][2] = cubeCopy[3][0]; //left side
+	rubiksCube[4][5] = cubeCopy[3][1];
+	rubiksCube[4][8] = cubeCopy[3][2];
+	
+	rubiksCube[0][6] = cubeCopy[4][8]; //up side
+	rubiksCube[0][7] = cubeCopy[4][5];
+	rubiksCube[0][8] = cubeCopy[4][2];
+	
+	console.log("rotating F");
+	console.log(rubiksCube);
+	rotations.push(" F");
+	document.getElementById("rotation").innerHTML = "Rotations: " + rotations;
+	document.getElementById("algorithm").value = "F";
+	domoves();
+}
+
+function FrontCounterClockwise()
+{
+	cubeCopy = rubiksCube.map(function(arr) {
+		return arr.slice();
+	});
+	
+	counterClockwide(2); //center
+	
+	rubiksCube[1][0] = cubeCopy[3][2]; //right side
+	rubiksCube[1][3] = cubeCopy[3][1];
+	rubiksCube[1][6] = cubeCopy[3][0];
+	
+	rubiksCube[3][0] = cubeCopy[4][2]; //down side
+	rubiksCube[3][1] = cubeCopy[4][5];
+	rubiksCube[3][2] = cubeCopy[4][8];
+	
+	rubiksCube[4][2] = cubeCopy[0][8]; //left side
+	rubiksCube[4][5] = cubeCopy[0][7];
+	rubiksCube[4][8] = cubeCopy[0][6];
+	
+	rubiksCube[0][6] = cubeCopy[1][0]; //up side
+	rubiksCube[0][7] = cubeCopy[1][3];
+	rubiksCube[0][8] = cubeCopy[1][6];
+	
+	console.log("rotating F'");
+	console.log(rubiksCube);
+	rotations.push(" F'");
+	document.getElementById("rotation").innerHTML = "Rotations: " + rotations;
+	document.getElementById("algorithm").value = "F'";
+	domoves();
+}
+
+//**Down
+function DownClockwise()
+{
+	cubeCopy = rubiksCube.map(function(arr) {
+		return arr.slice();
+	});
+	
+	clockwise(3); //center
+	
+	rubiksCube[1][6] = cubeCopy[2][6]; //right side
+	rubiksCube[1][7] = cubeCopy[2][7];
+	rubiksCube[1][8] = cubeCopy[2][8];
+	
+	rubiksCube[5][6] = cubeCopy[1][6]; //down side
+	rubiksCube[5][7] = cubeCopy[1][7];
+	rubiksCube[5][8] = cubeCopy[1][8];
+	
+	rubiksCube[4][6] = cubeCopy[5][6]; //left side
+	rubiksCube[4][7] = cubeCopy[5][7];
+	rubiksCube[4][8] = cubeCopy[5][8];
+	
+	rubiksCube[2][6] = cubeCopy[4][6]; //up side
+	rubiksCube[2][7] = cubeCopy[4][7];
+	rubiksCube[2][8] = cubeCopy[4][8];
+	
+	console.log("rotating D");
+	console.log(rubiksCube);
+	rotations.push(" D");
+	document.getElementById("rotation").innerHTML = "Rotations: " + rotations;
+	document.getElementById("algorithm").value = "D";
+	domoves();
+}
+
+function DownCounterClockwise()
+{	
+	cubeCopy = rubiksCube.map(function(arr) {
+		return arr.slice();
+	});
+	
+	counterClockwide(3); //center
+	
+	rubiksCube[1][6] = cubeCopy[5][6]; //right side
+	rubiksCube[1][7] = cubeCopy[5][7];
+	rubiksCube[1][8] = cubeCopy[5][8];
+	
+	rubiksCube[5][6] = cubeCopy[4][6]; //down side
+	rubiksCube[5][7] = cubeCopy[4][7];
+	rubiksCube[5][8] = cubeCopy[4][8];
+	
+	rubiksCube[4][6] = cubeCopy[2][6]; //left side
+	rubiksCube[4][7] = cubeCopy[2][7];
+	rubiksCube[4][8] = cubeCopy[2][8];
+	
+	rubiksCube[2][6] = cubeCopy[1][6]; //up side
+	rubiksCube[2][7] = cubeCopy[1][7];
+	rubiksCube[2][8] = cubeCopy[1][8];
+	
+	console.log("rotating D'");
+	console.log(rubiksCube);
+	rotations.push(" D'");
+	document.getElementById("rotation").innerHTML = "Rotations: " + rotations;
+	document.getElementById("algorithm").value = "D'";
+	domoves();
+}
+
+//**Left
+function LeftClockwise()
+{	
+	cubeCopy = rubiksCube.map(function(arr) {
+		return arr.slice();
+	});
+	
+	clockwise(4); //center
+	
+	rubiksCube[2][0] = cubeCopy[0][0]; //right side
+	rubiksCube[2][3] = cubeCopy[0][3];
+	rubiksCube[2][6] = cubeCopy[0][6];
+	
+	rubiksCube[3][0] = cubeCopy[2][0]; //down side
+	rubiksCube[3][3] = cubeCopy[2][3];
+	rubiksCube[3][6] = cubeCopy[2][6];
+	
+	rubiksCube[5][2] = cubeCopy[3][6]; //left side
+	rubiksCube[5][5] = cubeCopy[3][3];
+	rubiksCube[5][8] = cubeCopy[3][0];
+	
+	rubiksCube[0][0] = cubeCopy[5][8]; //up side
+	rubiksCube[0][3] = cubeCopy[5][5];
+	rubiksCube[0][6] = cubeCopy[5][2];
+	
+	console.log("rotating L");
+	console.log(rubiksCube);
+	rotations.push(" L");
+	document.getElementById("rotation").innerHTML = "Rotations: " + rotations;
+	document.getElementById("algorithm").value = "L";
+	domoves();
+}
+
+function LeftCounterClockwise()
+{
+	cubeCopy = rubiksCube.map(function(arr) {
+		return arr.slice();
+	});
+	
+	counterClockwide(4); //center
+	
+	rubiksCube[2][0] = cubeCopy[3][0]; //right side
+	rubiksCube[2][3] = cubeCopy[3][3];
+	rubiksCube[2][6] = cubeCopy[3][6];
+	
+	rubiksCube[3][0] = cubeCopy[5][8]; //down side
+	rubiksCube[3][3] = cubeCopy[5][5];
+	rubiksCube[3][6] = cubeCopy[5][2];
+	
+	rubiksCube[5][2] = cubeCopy[0][6]; //left side
+	rubiksCube[5][5] = cubeCopy[0][3];
+	rubiksCube[5][8] = cubeCopy[0][0];
+	
+	rubiksCube[0][0] = cubeCopy[2][0]; //up side
+	rubiksCube[0][3] = cubeCopy[2][3];
+	rubiksCube[0][6] = cubeCopy[2][6];
+	
+	console.log("rotating L'");
+	console.log(rubiksCube);
+	rotations.push(" L'");
+	document.getElementById("rotation").innerHTML = "Rotations: " + rotations;
+	document.getElementById("algorithm").value = "L'";
+	domoves();
+}
+
+//**Back
+function BackClockwise()
+{
+	cubeCopy = rubiksCube.map(function(arr) {
+		return arr.slice();
+	});
+	
+	clockwise(5); //center
+	
+	rubiksCube[4][0] = cubeCopy[0][2]; //right side
+	rubiksCube[4][3] = cubeCopy[0][1];
+	rubiksCube[4][6] = cubeCopy[0][0];
+	
+	rubiksCube[3][6] = cubeCopy[4][0]; //down side
+	rubiksCube[3][7] = cubeCopy[4][3];
+	rubiksCube[3][8] = cubeCopy[4][6];
+	
+	rubiksCube[1][2] = cubeCopy[3][8]; //left side
+	rubiksCube[1][5] = cubeCopy[3][7];
+	rubiksCube[1][8] = cubeCopy[3][6];
+	
+	rubiksCube[0][0] = cubeCopy[1][2]; //up side
+	rubiksCube[0][1] = cubeCopy[1][5];
+	rubiksCube[0][2] = cubeCopy[1][8];
+	
+	console.log("rotating B");
+	console.log(rubiksCube);
+	rotations.push(" B");
+	document.getElementById("rotation").innerHTML = "Rotations: " + rotations;
+	document.getElementById("algorithm").value = "B";
+	domoves();
+}
+
+function BackCounterClockwise()
+{
+	cubeCopy = rubiksCube.map(function(arr) {
+		return arr.slice();
+	});
+	
+	counterClockwide(5); //center
+	
+	rubiksCube[4][0] = cubeCopy[3][6]; //right side
+	rubiksCube[4][3] = cubeCopy[3][7];
+	rubiksCube[4][6] = cubeCopy[3][8];
+	
+	rubiksCube[3][6] = cubeCopy[1][8]; //down side
+	rubiksCube[3][7] = cubeCopy[1][5];
+	rubiksCube[3][8] = cubeCopy[1][2];
+	
+	rubiksCube[1][2] = cubeCopy[0][0]; //left side
+	rubiksCube[1][5] = cubeCopy[0][1];
+	rubiksCube[1][8] = cubeCopy[0][2];
+	
+	rubiksCube[0][0] = cubeCopy[4][6]; //up side
+	rubiksCube[0][1] = cubeCopy[4][3];
+	rubiksCube[0][2] = cubeCopy[4][0];
+	
+	console.log("rotating B'");
+	console.log(rubiksCube);
+	rotations.push(" B'");
+	document.getElementById("rotation").innerHTML = "Rotations: " + rotations;
+	document.getElementById("algorithm").value = "B'";
+	domoves();
+}
+
+
+//##################
+//rotatable 3D cube 
+var renderer = Rubikjs.Render.WebGL.Renderer;
+var puzzle = Rubikjs.Puzzle.ClassicRubiksCube;
+
+var rendermgr = null;
+var cube = null;
+var options = {};
+var backgroundColor = "#FFFFFF";
+
+function restart() {
+	//Reset the context...
+	var canvas = document.getElementById("cube");
+	var parentNode = canvas.parentNode;
+	parentNode.removeChild(canvas);
+	canvas = document.createElement("canvas");
+	canvas.setAttribute("width", "200");
+	canvas.setAttribute("height", "200");
+	canvas.style.background = backgroundColor;
+	canvas.setAttribute("id", "cube");
+	parentNode.appendChild(canvas);
+
+	rendermgr = new Rubikjs.Render.RenderManager(renderer);
+	cube = new puzzle(rendermgr, options);
+}
+
+function color() {
+options = {};
+console.log(document.querySelector('#Uface').value);
+console.log(document.querySelector('#Rface').value);
+console.log(document.querySelector('#Fface').value);
+console.log(document.querySelector('#Dface').value);
+console.log(document.querySelector('#Lface').value);
+console.log(document.querySelector('#Bface').value);
+var Ucolor = colorCode(document.querySelector('#Uface').value);
+console.log(Ucolor);
+var Rcolor = colorCode(document.querySelector('#Rface').value);
+var Fcolor = colorCode(document.querySelector('#Fface').value);
+var Dcolor = colorCode(document.querySelector('#Dface').value);
+var Lcolor = colorCode(document.querySelector('#Lface').value);
+var Bcolor = colorCode(document.querySelector('#Bface').value);
+options.colorscheme = {
+	U: eval("[" + Ucolor + "]"),
+	D: eval("[" + Dcolor + "]"),
+	L: eval("[" + Lcolor + "]"),
+	R: eval("[" + Rcolor + "]"),
+	F: eval("[" + Fcolor + "]"),
+	B: eval("[" + Bcolor + "]")
+};
+backgroundColor = "#FFFFFF";
+reset();
+}
+
+function colorCode(colorName) {
+if (colorName=="white")
+	return "1.0, 1.0, 1.0, 1.0";
+else if (colorName=="yellow")
+	return "1.0, 1.0, 0.0, 1.0";
+else if (colorName=="red")
+	return "1.0, 0.0, 0.0, 1.0";
+else if (colorName=="orange")
+	return "1.0, 0.5, 0.0, 1.0";
+else if (colorName=="blue")
+	return "0.0, 0.0, 1.0, 1.0";
+else if (colorName=="green")
+	return "0.0, 1.0, 0.0, 1.0";
+}
+
+function applyOptions() {
+	options = {};
+	
+	options.N = eval(5);
+	backgroundColor = "#FFFFFF";
+	restart();
+}
+
+window.onload = applyOptions;
+
+
+function domoves() {
+	cube.sendMultipleInstructions(cube.notation.parse(document.getElementById("algorithm").value));
+}
+
+
+
+//#########
+//solving algorithm
+function solveEdge()
+{
+	//solving edges
+	var edgeGoal = ((rubiksCube[0][1]=="U2" && rubiksCube[5][1]=="B2") && (rubiksCube[0][3]=="U4" && rubiksCube[4][1]=="L2") && 
+					(rubiksCube[0][5]=="U6" && rubiksCube[1][1]=="R2") && (rubiksCube[0][7]=="U8" && rubiksCube[2][1]=="F2") && 
+					(rubiksCube[5][5]=="B6" && rubiksCube[4][3]=="L4") && (rubiksCube[4][5]=="L6" && rubiksCube[2][3]=="F4") && 
+					(rubiksCube[2][5]=="F6" && rubiksCube[1][3]=="R4") && (rubiksCube[1][5]=="R6" && rubiksCube[5][3]=="B4") && 
+					(rubiksCube[3][1]=="D2" && rubiksCube[2][7]=="F8") && (rubiksCube[3][3]=="D4" && rubiksCube[4][7]=="L8") && 
+					(rubiksCube[3][5]=="D6" && rubiksCube[1][7]=="R8") && (rubiksCube[3][7]=="D8" && rubiksCube[5][7]=="B8"));
+			
+	if (edgeGoal)
+		console.log("The edge is already solved!");
+	else
+	{
+		var count = 0;
+		var buffer;
+		
+		if (((rubiksCube[0][5]=="U6" && rubiksCube[1][1]=="R2") || (rubiksCube[0][5]=="R2" && rubiksCube[1][1]=="U6")))
+		{
+			buffer = edgeBufferChange();
+			count++;
+			console.log(rubiksCube);
+			console.log(count);
+			console.log("####\n");
+		}
+		
+		
+		if (!((rubiksCube[0][5]=="U6" && rubiksCube[1][1]=="R2") || (rubiksCube[0][5]=="R2" && rubiksCube[1][1]=="U6")))
+		{	
+			buffer = [rubiksCube[0][5].slice(), rubiksCube[1][1].slice()];
+			console.log("init buffer: " + buffer);
+			var faceID = [0,0];
+			
+			while (1)
+			{
+				var edgeGoalbuffer = (rubiksCube[0][1]=="U2" && rubiksCube[0][3]=="U4" && rubiksCube[0][7]=="U8"
+					&& rubiksCube[1][3]=="R4" && rubiksCube[1][5]=="R6" && rubiksCube[1][7]=="R8"
+					&& rubiksCube[2][1]=="F2" && rubiksCube[2][3]=="F4" && rubiksCube[2][5]=="F6" && rubiksCube[2][7]=="F8"
+					&& rubiksCube[3][1]=="D2" && rubiksCube[3][3]=="D4" && rubiksCube[3][5]=="D6" && rubiksCube[3][7]=="D8"
+					&& rubiksCube[4][1]=="L2" && rubiksCube[4][3]=="L4" && rubiksCube[4][5]=="L6" && rubiksCube[4][7]=="L8"
+					&& rubiksCube[5][1]=="B2" && rubiksCube[5][3]=="B4" && rubiksCube[5][5]=="B6" && rubiksCube[5][7]=="B8");
+					
+				if (edgeGoalbuffer)
+				{
+					rubiksCube[0][5] = "U6";
+					rubiksCube[1][1] = "R2";
+					
+					if (!(count%2==0))
+					{
+						var copyCube = rubiksCube.map(function(arr) {
+							return arr.slice();
+						});
+						rubiksCube[0][2] = copyCube[0][8];
+						rubiksCube[5][0] = copyCube[1][0];
+						rubiksCube[1][2] = copyCube[2][2];
+						
+						rubiksCube[0][8] = copyCube[0][2];
+						rubiksCube[1][0] = copyCube[5][0];
+						rubiksCube[2][2] = copyCube[1][2];
+					}
+					console.log("The edge is solved !");
+					console.log(rubiksCube);
+					if (document.getElementById('radFirstTech').checked)
+						memEdge();
+					else if (document.getElementById('radSecondTech').checked)
+					{
+						var edgeSequence = new Array();
+						for (var i=0; i<edge.length; i++)
+						{
+							if (document.getElementById('chOthers2').checked)
+								edgeSequence.push(othersFromLetters2(edge[i][0]));
+							else
+								edgeSequence.push(edge[i][0]);
+						}
+						document.getElementById("edgeSeq").innerHTML = "Edge Sequence: ".bold() + edgeSequence;
+						memEdge();
+					}
+					break;
+				}
+							
+				var face = [buffer[0].substring(0,1), buffer[1].substring(0,1)];
+				console.log("face: " + face);
+				var num = [parseInt(buffer[0].substring(1,2))-1, parseInt(buffer[1].substring(1,2))-1];
+				console.log("num: " + num);
+				
+				for (var i=0; i<2; i++)
+				{
+				if (face[i]=="U")
+					faceID[i] = 0;
+				else if (face[i]=="R")
+					faceID[i] = 1;
+				else if (face[i]=="F")
+					faceID[i] = 2;
+				else if (face[i]=="D")
+					faceID[i] = 3;
+				else if (face[i]=="L")
+					faceID[i] = 4;
+				else if (face[i]=="B")
+					faceID[i] = 5;
+				}
+				console.log("faceID: " + faceID);
+				
+				
+				var prevBuffer = buffer.map(function(arr) {
+					return arr.slice();
+				});
+				
+				if ((rubiksCube[0][5]=="U6" && rubiksCube[1][1]=="R2") || (rubiksCube[0][5]=="R2" && rubiksCube[1][1]=="U6"))
+				{
+					buffer = edgeBufferChange();
+					console.log("Starting buffer: " + buffer);
+					
+				}
+				else 
+				{		
+					edge.push(buffer);
+					buffer = [rubiksCube[faceID[0]][num[0]], rubiksCube[faceID[1]][num[1]]]; //update the buffer
+					rubiksCube[faceID[0]][num[0]] = prevBuffer[0];
+					rubiksCube[faceID[1]][num[1]] = prevBuffer[1];
+					rubiksCube[0][5] = buffer[0];
+					rubiksCube[1][1] = buffer[1];
+				}
+				
+				console.log("prev buffer: " + prevBuffer);
+				console.log("new buffer: " + buffer);				
+				count++;
+				
+				console.log(rubiksCube);
+				console.log(count);
+				console.log("####\n");
+				
+			}
+		}
+	}
+}
+
+
+function solveCorner()
+{
+	//solving the corners
+	console.log(rubiksCube);
+	var cornerGoal = (rubiksCube[0][0]=="U1" && rubiksCube[0][2]=="U3" && rubiksCube[0][6]=="U7" && rubiksCube[0][8]=="U9"
+				   && rubiksCube[1][0]=="R1" && rubiksCube[1][2]=="R3" && rubiksCube[1][6]=="R7" && rubiksCube[1][8]=="R9"
+				   && rubiksCube[2][0]=="F1" && rubiksCube[2][2]=="F3" && rubiksCube[2][6]=="F7" && rubiksCube[2][8]=="F9"
+				   && rubiksCube[3][0]=="D1" && rubiksCube[3][2]=="D3" && rubiksCube[3][6]=="D7" && rubiksCube[3][8]=="D9"
+				   && rubiksCube[4][0]=="L1" && rubiksCube[4][2]=="L3" && rubiksCube[4][6]=="L7" && rubiksCube[4][8]=="L9"
+				   && rubiksCube[5][0]=="B1" && rubiksCube[5][2]=="B3" && rubiksCube[5][6]=="B7" && rubiksCube[5][8]=="B9");
+	
+	if (cornerGoal)
+		console.log("The rubiksCube is already solved!");
+	else
+	{
+		console.log("SOLVING THE CORNERS:");
+		console.log(rubiksCube);
+		var count = 0;
+		var cornerBuffer;
+		
+		if ((rubiksCube[4][0]=="L1" && rubiksCube[0][0]=="U1" && rubiksCube[5][2]=="B3") || 
+			(rubiksCube[4][0]=="U1" && rubiksCube[0][0]=="B3" && rubiksCube[5][2]=="L1") ||
+			(rubiksCube[4][0]=="B3" && rubiksCube[0][0]=="L1" && rubiksCube[5][2]=="U1"))
+		{
+			console.log("beganing buffer changing");
+			cornerBuffer = cornecrBufferChange();
+			count++;
+			console.log(rubiksCube);
+			console.log(count);
+			console.log("####\n");
+		}
+		if (!((rubiksCube[4][0]=="L1" && rubiksCube[0][0]=="U1" && rubiksCube[5][2]=="B3") || 
+			  (rubiksCube[4][0]=="U1" && rubiksCube[0][0]=="B3" && rubiksCube[5][2]=="L1") ||
+			  (rubiksCube[4][0]=="B3" && rubiksCube[0][0]=="L1" && rubiksCube[5][2]=="U1")))
+		{
+			var cornerBuffer = [rubiksCube[4][0].slice(), rubiksCube[0][0].slice(), rubiksCube[5][2].slice()];
+			console.log("init buffer: " + cornerBuffer);
+			var faceID = [0,0,0];
+			
+			
+			while (1)
+			{
+				var cornerGoalbuffer = (rubiksCube[0][2]=="U3" && rubiksCube[0][6]=="U7" && rubiksCube[0][8]=="U9"
+				 && rubiksCube[1][0]=="R1" && rubiksCube[1][2]=="R3" && rubiksCube[1][6]=="R7" && rubiksCube[1][8]=="R9"
+				 && rubiksCube[2][0]=="F1" && rubiksCube[2][2]=="F3" && rubiksCube[2][6]=="F7" && rubiksCube[2][8]=="F9"
+				 && rubiksCube[3][0]=="D1" && rubiksCube[3][2]=="D3" && rubiksCube[3][6]=="D7" && rubiksCube[3][8]=="D9"
+									 && rubiksCube[4][2]=="L3" && rubiksCube[4][6]=="L7" && rubiksCube[4][8]=="L9"
+									 && rubiksCube[5][0]=="B1" && rubiksCube[5][6]=="B7" && rubiksCube[5][8]=="B9");
+							
+				if (cornerGoalbuffer)
+				{
+					rubiksCube[4][0] = "L1";
+					rubiksCube[0][0] = "U1";
+					rubiksCube[5][2] = "B3";
+					
+					console.log(rubiksCube);
+					
+					if (!(count%2==0))
+					{
+						var copyCube = rubiksCube.map(function(arr) {
+							return arr.slice();
+						});
+						rubiksCube[0][1] = copyCube[0][3];
+						rubiksCube[5][1] = copyCube[4][1];
+						
+						rubiksCube[0][3] = copyCube[0][1];
+						rubiksCube[4][1] = copyCube[5][1];
+					}
+					console.log("The corners are solved !");
+					if (document.getElementById('radFirstTech').checked)
+						memCorner();
+					else if (document.getElementById('radSecondTech').checked)
+					{
+						var cornerSequence = new Array();
+						for (var i=0; i<corner.length; i++)
+						{
+							if (document.getElementById('chOthers2').checked)
+								cornerSequence.push(othersFromLetters2(corner[i][0]));
+							else
+								cornerSequence.push(corner[i][0]);
+						}
+						document.getElementById("cornerSeq").innerHTML = "Corner Sequence: ".bold() + cornerSequence;
+						memCorner();
+					}
+					break;
+				}
+				
+				console.log("corner buffer: " + cornerBuffer);
+				var face = [cornerBuffer[0].substring(0,1), cornerBuffer[1].substring(0,1), cornerBuffer[2].substring(0,1)];
+				console.log("face: " + face);
+				var num = [parseInt(cornerBuffer[0].substring(1,2))-1, parseInt(cornerBuffer[1].substring(1,2))-1, parseInt(cornerBuffer[2].substring(1,2))-1];
+				console.log("num: " + num);
+				
+				for (var i=0; i<3; i++)
+				{
+				if (face[i]=="U")
+					faceID[i] = 0;
+				else if (face[i]=="R")
+					faceID[i] = 1;
+				else if (face[i]=="F")
+					faceID[i] = 2;
+				else if (face[i]=="D")
+					faceID[i] = 3;
+				else if (face[i]=="L")
+					faceID[i] = 4;
+				else if (face[i]=="B")
+					faceID[i] = 5;
+				}
+				console.log("faceID: " + faceID);
+				
+				
+				var prevBuffer = cornerBuffer.map(function(arr) {
+					return arr.slice();
+				});
+				
+				//conditions of changing buffer
+				if ((rubiksCube[4][0]=="L1" && rubiksCube[0][0]=="U1" && rubiksCube[5][2]=="B3") || 
+					(rubiksCube[4][0]=="U1" && rubiksCube[0][0]=="B3" && rubiksCube[5][2]=="L1") ||
+					(rubiksCube[4][0]=="B3" && rubiksCube[0][0]=="L1" && rubiksCube[5][2]=="U1"))
+				{
+					console.log("changing buffer");
+					cornerBuffer = cornecrBufferChange();
+					console.log("Starting buffer: " + cornerBuffer);
+				}
+				
+				else
+				{
+					corner.push(cornerBuffer);
+					cornerBuffer = [rubiksCube[faceID[0]][num[0]], rubiksCube[faceID[1]][num[1]], rubiksCube[faceID[2]][num[2]]]; //update the buffer
+					rubiksCube[faceID[0]][num[0]] = prevBuffer[0];
+					rubiksCube[faceID[1]][num[1]] = prevBuffer[1];
+					rubiksCube[faceID[2]][num[2]] = prevBuffer[2];
+					rubiksCube[4][0] = cornerBuffer[0];
+					rubiksCube[0][0] = cornerBuffer[1];
+					rubiksCube[5][2] = cornerBuffer[2];
+					console.log("regular swapping");
+				}
+				
+				console.log("prev buffer: " + prevBuffer);
+				console.log("new buffer: " + cornerBuffer);				
+				count++;
+				
+				console.log(rubiksCube);
+				console.log(count);
+				console.log("####\n");
+				
+			}
+		}
+	}
+}
+
+function edgeBufferChange()
+{
+	var copyCube = rubiksCube.map(function(arr) {
+						return arr.slice();
+					});
+	
+	var a1, a2, b1, b2;
+	
+	if (!(rubiksCube[0][1]=="U2" && rubiksCube[5][1]=="B2"))
+	{
+		a1 = 0;
+		a2 = 1;
+		b1 = 5;
+		b2 = 1;
+		
+		buffer = ["U2", "B2"];
+		edge.push(buffer);
+	}
+	
+	else if (!(rubiksCube[0][3]=="U4" && rubiksCube[4][1]=="L2"))
+	{
+		a1 = 0;
+		a2 = 3;
+		b1 = 4;
+		b2 = 1;
+		
+		buffer = ["U4", "L2"];
+		edge.push(buffer);
+	}
+	
+	else if (!(rubiksCube[0][7]=="U8" && rubiksCube[2][1]=="F2"))
+	{
+		a1 = 0;
+		a2 = 7;
+		b1 = 2;
+		b2 = 1;
+		
+		buffer = ["U8", "F2"];
+		edge.push(buffer);
+	}
+	
+	
+	else if (!(rubiksCube[5][5]=="B6" && rubiksCube[4][3]=="L4"))
+	{
+		a1 = 5;
+		a2 = 5;
+		b1 = 4;
+		b2 = 3;
+		
+		buffer = ["B6", "L4"];
+		edge.push(buffer);
+	}
+	
+	else if (!(rubiksCube[4][5]=="L6" && rubiksCube[2][3]=="F4"))
+	{
+		a1 = 4;
+		a2 = 5;
+		b1 = 2;
+		b2 = 3;
+		
+		buffer = ["L6", "F4"];
+		edge.push(buffer);
+	}
+	
+	else if (!(rubiksCube[2][5]=="F6" && rubiksCube[1][3]=="R4"))
+	{
+		a1 = 2;
+		a2 = 5;
+		b1 = 1;
+		b2 = 3;
+		
+		buffer = ["F6", "R4"];
+		edge.push(buffer);
+	}
+	
+	else if (!(rubiksCube[1][5]=="R6" && rubiksCube[5][3]=="B4"))
+	{
+		a1 = 1;
+		a2 = 5;
+		b1 = 5;
+		b2 = 3;
+		
+		buffer = ["R6", "B4"];
+		edge.push(buffer);
+	}
+	
+	
+	else if (!(rubiksCube[3][1]=="D2" && rubiksCube[2][7]=="F8"))
+	{
+		a1 = 3;
+		a2 = 1;
+		b1 = 2;
+		b2 = 7;
+		
+		buffer = ["D2", "F8"];
+		edge.push(buffer);
+	}
+	
+	else if (!(rubiksCube[3][3]=="D4" && rubiksCube[4][7]=="L8"))
+	{
+		a1 = 3;
+		a2 = 3;
+		b1 = 4;
+		b2 = 7;
+		
+		buffer = ["D4", "L8"];
+		edge.push(buffer);
+	}
+	
+	else if (!(rubiksCube[3][5]=="D6" && rubiksCube[1][7]=="R8"))
+	{
+		a1 = 3;
+		a2 = 5;
+		b1 = 1;
+		b2 = 7;
+		
+		buffer = ["D6", "R8"];
+		edge.push(buffer);
+	}
+	
+	else if (!(rubiksCube[3][7]=="D8" && rubiksCube[5][7]=="B8"))
+	{
+		a1 = 3;
+		a2 = 7;
+		b1 = 5;
+		b2 = 7;
+		
+		buffer = ["D8", "B8"];
+		edge.push(buffer);
+	}
+	
+	buffer = [rubiksCube[a1][a2].slice(), rubiksCube[b1][b2].slice()];
+	
+	if (rubiksCube[0][5]=="U6" && rubiksCube[1][1]=="R2")
+	{
+		rubiksCube[a1][a2] = copyCube[0][5];
+		rubiksCube[b1][b2] = copyCube[1][1];
+		
+		rubiksCube[0][5] = copyCube[a1][a2];
+		rubiksCube[1][1] = copyCube[b1][b2];
+	}
+	else
+	{
+		rubiksCube[a1][a2] = copyCube[1][1];
+		rubiksCube[b1][b2] = copyCube[0][5];
+		
+		rubiksCube[1][1] = copyCube[a1][a2];
+		rubiksCube[0][5] = copyCube[b1][b2];
+	}
+	return buffer;
+}
+
+
+function cornecrBufferChange()
+{
+	var copyCube = rubiksCube.map(function(arr) {
+						return arr.slice();
+					});
+	var a1, a2, b1, b2, c1, c2;
+	
+	if (!(rubiksCube[0][2]=="U3" && rubiksCube[1][2]=="R3" && rubiksCube[5][0]=="B1"))
+	{
+		a1 = 0;
+		a2 = 2;
+		b1 = 1;
+		b2 = 2;
+		c1 = 5;
+		c2 = 0;
+		
+		cornerBuffer = ["U3", "R3", "B1"];
+		corner.push(cornerBuffer);
+	}
+	
+	else if (!(rubiksCube[0][6]=="U7" && rubiksCube[4][2]=="L3" && rubiksCube[2][0]=="F1"))
+	{
+		a1 = 0;
+		a2 = 6;
+		b1 = 4;
+		b2 = 2;
+		c1 = 2;
+		c2 = 0;
+		
+		cornerBuffer = ["U7", "L3", "F1"];
+		corner.push(cornerBuffer);
+	}
+	
+	else if (!(rubiksCube[0][8]=="U9" && rubiksCube[2][2]=="F3" && rubiksCube[1][0]=="R1"))
+	{
+		a1 = 0;
+		a2 = 8;
+		b1 = 2;
+		b2 = 2;
+		c1 = 1;
+		c2 = 0;
+		
+		cornerBuffer = ["U9", "F3", "R1"];
+		corner.push(cornerBuffer);
+	}
+	
+	
+	else if (!(rubiksCube[3][0]=="D1" && rubiksCube[2][6]=="F7" && rubiksCube[4][8]=="L9"))
+	{
+		a1 = 3;
+		a2 = 0;
+		b1 = 2;
+		b2 = 6;
+		c1 = 4;
+		c2 = 8;
+		
+		cornerBuffer = ["D1", "F7", "L9"];
+		corner.push(cornerBuffer);
+	}
+	
+	else if (!(rubiksCube[3][2]=="D3" && rubiksCube[1][6]=="R7" && rubiksCube[2][8]=="F9"))
+	{
+		a1 = 3;
+		a2 = 2;
+		b1 = 1;
+		b2 = 6;
+		c1 = 2;
+		c2 = 8;
+		
+		cornerBuffer = ["D3", "R7", "F9"];
+		corner.push(cornerBuffer);
+	}
+	
+	else if (!(rubiksCube[3][6]=="D7" && rubiksCube[4][6]=="L7" && rubiksCube[5][8]=="B9"))
+	{
+		a1 = 3;
+		a2 = 6;
+		b1 = 4;
+		b2 = 6;
+		c1 = 5;
+		c2 = 8;
+		
+		cornerBuffer = ["D7", "L7", "B9"];
+		corner.push(cornerBuffer);
+	}
+	
+	else if (!(rubiksCube[3][8]=="D9" && rubiksCube[5][6]=="B7" && rubiksCube[1][8]=="R9"))
+	{
+		a1 = 3;
+		a2 = 8;
+		b1 = 5;
+		b2 = 6;
+		c1 = 1;
+		c2 = 8;
+		
+		cornerBuffer = ["D9", "B7", "R9"];
+		corner.push(cornerBuffer);
+	}
+	
+	cornerBuffer = [rubiksCube[a1][a2].slice(), rubiksCube[b1][b2].slice(), rubiksCube[c1][c2].slice()];
+	
+	if (rubiksCube[4][0]=="L1" && rubiksCube[0][0]=="U1" && rubiksCube[5][2]=="B3")
+	{
+		rubiksCube[a1][a2] = copyCube[4][0];
+		rubiksCube[b1][b2] = copyCube[0][0];
+		rubiksCube[c1][c2] = copyCube[5][2];
+		
+		rubiksCube[4][0] = copyCube[a1][a2];
+		rubiksCube[0][0] = copyCube[b1][b2];
+		rubiksCube[5][2] = copyCube[c1][c2];
+	}
+	else if (rubiksCube[4][0]=="U1" && rubiksCube[0][0]=="B3" && rubiksCube[5][2]=="L1")
+	{
+		rubiksCube[a1][a2] = copyCube[0][0];
+		rubiksCube[b1][b2] = copyCube[5][2];
+		rubiksCube[c1][c2] = copyCube[4][0];
+		
+		rubiksCube[4][0] = copyCube[a1][a2];
+		rubiksCube[0][0] = copyCube[b1][b2];
+		rubiksCube[5][2] = copyCube[c1][c2];
+	}
+	else if (rubiksCube[4][0]=="B3" && rubiksCube[0][0]=="L1" && rubiksCube[5][2]=="U1")
+	{
+		rubiksCube[a1][a2] = copyCube[5][2];
+		rubiksCube[b1][b2] = copyCube[4][0];
+		rubiksCube[c1][c2] = copyCube[0][0];
+		
+		rubiksCube[4][0] = copyCube[a1][a2];
+		rubiksCube[0][0] = copyCube[b1][b2];
+		rubiksCube[5][2] = copyCube[c1][c2];
+	}
+	return cornerBuffer;
+}
+
+
+
+//###############
+//memorizing techniques
+function memEdge()
+{
+	var edgeFaceLetter = new Array();
+	var edgeFaceName = new Array();
+	var edgeColorName = new Array();
+	var edgeColors = new Array();
+	var edgePictures = new Array();
+	var edgeOtherChar = new Array();
+	
+	var edgeFaceA = new Array();
+	var edgeFaceB = new Array();
+	
+	var title = ["1st".bold(),"2nd".bold(),"3rd".bold(),"4th".bold(),"5th".bold(),"6th".bold(),
+		   	  "7th".bold(),"8th".bold(),"9th".bold(),"10th".bold(),"11th".bold(),"12th".bold(),
+			  "13th".bold(),"14th".bold(),"15th".bold(),"16th".bold(),"17th".bold(),"18th".bold()];
+	
+	createRow(["Edge Sequence: ".bold()]);
+	createRow(["<br>"]);
+	if (edge.length<6)
+		createRow(title.slice(0,edge.length));
+	else
+		createRow(title.slice(0,6));
+	
+	//*if edge.length less than 7
+	//face letter
+	for (var i=0; i<edge.length; i++)
+	{
+		if (i==6)
+			break;
+		edgeFaceA[i] = edge[i][0].substring(0,1);
+		edgeFaceB[i] = edge[i][1].substring(0,1);
+		edgeFaceLetter.push(edgeFaceA[i]+edgeFaceB[i]);
+	}
+	if (document.getElementById("chFaceLetter").checked==true)
+		createRow(edgeFaceLetter);
+	
+	//face name
+	for (var i=0; i<edge.length; i++)
+	{
+		if (i==6)
+			break;
+		edgeFaceA[i] = nameFromLetter(edge[i][0].substring(0,1));
+		edgeFaceB[i] = nameFromLetter(edge[i][1].substring(0,1));
+		edgeFaceName.push(edgeFaceA[i]+"-"+edgeFaceB[i]);
+	}
+	if (document.getElementById("chFaceName").checked==true)
+		createRow(edgeFaceName);
+	
+	//color name
+	for (var i=0; i<edge.length; i++)
+	{
+		if (i==6)
+			break;
+		edgeFaceA[i] = colorNameFromLetter(edge[i][0].substring(0,1));
+		edgeFaceB[i] = colorNameFromLetter(edge[i][1].substring(0,1));
+		edgeColorName.push(edgeFaceA[i]+"-"+edgeFaceB[i]);
+	}
+	if (document.getElementById("chColorName").checked==true)
+		createRow(edgeColorName);
+	
+	//colors
+	if (document.getElementById("chColors").checked==true)
+	{
+		var tableRows = document.getElementById("model_table").rows.length;
+		var strTable = "";
+		strTable += "<tr>"
+		strTable += "</tr>";
+		$('#model_table').append(strTable);
+		var maxCell;
+		if (edgeFaceLetter.length<6)
+			maxCell = edgeFaceLetter.length-1;
+		else
+			maxCell = 5;
+		for (var i=maxCell; i>=0; i--)
+		{
+				edgeCreateCanvas(hexCodeColor(colorNameFromLetter(edge[i][0].substring(0,1))),
+				hexCodeColor(colorNameFromLetter(edge[i][1].substring(0,1))),tableRows);
+		}
+	}
+	
+	//other char
+	for (var i=0; i<edge.length; i++)
+	{
+		if (i==6)
+			break;
+		edgeFaceA[i] = othersFromLetter(edge[i][0].substring(0,1));
+		edgeFaceB[i] = othersFromLetter(edge[i][1].substring(0,1));
+		edgeOtherChar.push(edgeFaceA[i]+edgeFaceB[i]);
+	}
+	if (document.getElementById("chOthers").checked==true)
+		createRow(edgeOtherChar);
+		
+	//Pictures
+	if (document.getElementById("chPictures").checked==true || document.getElementById("radSecondTech").checked==true)
+	{
+		var tableRows = document.getElementById("model_table").rows.length;
+		//console.log(tableRows);
+		var strTable = "";
+		strTable += "<tr>"
+		strTable += "</tr>";
+		$('#model_table').append(strTable);
+		
+		var maxCell;
+		if (edgeFaceLetter.length<6)
+			maxCell = edgeFaceLetter.length-1;
+		else
+			maxCell = 5;
+		for (var i=maxCell; i>=0; i--)
+				createImage(picSrcFromLetter(edgeFaceLetter[i]),tableRows);
+	}	
+		
+	
+	
+	//*if edge.length between 7 and 12
+	if (edge.length>6)
+	{
+		createRow(["<br>"]);
+		if (edge.length<12)
+			createRow(title.slice(6,edge.length));
+		else
+			createRow(title.slice(6,12));
+
+		//face letter
+		for (var i=6; i<edge.length; i++)
+		{
+			if (i==12)
+				break;
+			edgeFaceA[i] = edge[i][0].substring(0,1);
+			edgeFaceB[i] = edge[i][1].substring(0,1);
+			edgeFaceLetter.push(edgeFaceA[i]+edgeFaceB[i]);
+		}
+		if (document.getElementById("chFaceLetter").checked==true)
+			createRow(edgeFaceLetter.slice(6, edgeFaceLetter.length)); //move the action to the proper line!
+		
+		//face name
+		for (var i=6; i<edge.length; i++)
+		{
+			if (i==12)
+				break;
+			edgeFaceA[i] = nameFromLetter(edge[i][0].substring(0,1));
+			edgeFaceB[i] = nameFromLetter(edge[i][1].substring(0,1));
+			edgeFaceName.push(edgeFaceA[i]+"-"+edgeFaceB[i]);
+		}
+		if (document.getElementById("chFaceName").checked==true)
+			createRow(edgeFaceName.slice(6, edgeFaceName.length)); //##
+		
+		//color name
+		for (var i=6; i<edge.length; i++)
+		{
+			if (i==12)
+				break;
+			edgeFaceA[i] = colorNameFromLetter(edge[i][0].substring(0,1));
+			edgeFaceB[i] = colorNameFromLetter(edge[i][1].substring(0,1));
+			edgeColorName.push(edgeFaceA[i]+"-"+edgeFaceB[i]);
+		}
+		if (document.getElementById("chColorName").checked==true)
+			createRow(edgeColorName.slice(6, edgeColorName.length)); //##
+		
+		//colors
+		if (document.getElementById("chColors").checked==true)
+		{
+			var tableRows = document.getElementById("model_table").rows.length;
+			var strTable = "";
+			strTable += "<tr>"
+			strTable += "</tr>";
+			$('#model_table').append(strTable);
+			var maxCell;
+			if (edgeFaceLetter.length<12)
+				maxCell = edgeFaceLetter.length-1;
+			else
+				maxCell = 11;
+			for (var i=maxCell; i>=6; i--)
+			{
+					edgeCreateCanvas(hexCodeColor(colorNameFromLetter(edge[i][0].substring(0,1))),
+					hexCodeColor(colorNameFromLetter(edge[i][1].substring(0,1))),tableRows);
+			}
+		}
+		
+		//others
+		for (var i=6; i<edge.length; i++)
+		{
+			if (i==12)
+				break;
+			edgeFaceA[i] = othersFromLetter(edge[i][0].substring(0,1));
+			edgeFaceB[i] = othersFromLetter(edge[i][1].substring(0,1));
+			edgeOtherChar.push(edgeFaceA[i]+edgeFaceB[i]);
+		}
+		if (document.getElementById("chOthers").checked==true)	
+			createRow(edgeOtherChar.slice(6, edgeOtherChar.length)); //##
+		
+		//Pictures
+		if (document.getElementById("chPictures").checked==true || document.getElementById("radSecondTech").checked==true)
+		{
+			var tableRows = document.getElementById("model_table").rows.length;
+			//console.log(tableRows);
+			var strTable = "";
+			strTable += "<tr>"
+			strTable += "</tr>";
+			$('#model_table').append(strTable);
+			
+			var maxCell;
+			if (edgeFaceLetter.length<12)
+				maxCell = edgeFaceLetter.length-1;
+			else
+				maxCell = 11;
+			for (var i=maxCell; i>=6; i--)
+					createImage(picSrcFromLetter(edgeFaceLetter[i]),tableRows);
+		}
+
+	}
+	
+	
+	//*if edge.length greater than 12
+	if (edge.length>12)
+	{
+		createRow(["<br>"]);
+		createRow(title.slice(12,edge.length));
+		
+		//face letter
+		for (var i=12; i<edge.length; i++)
+		{
+			edgeFaceA[i] = edge[i][0].substring(0,1);
+			edgeFaceB[i] = edge[i][1].substring(0,1);
+			edgeFaceLetter.push(edgeFaceA[i]+edgeFaceB[i]);
+		}
+		if (document.getElementById("chFaceLetter").checked==true)
+			createRow(edgeFaceLetter.slice(12, edge.length)); //move the action to the proper line!
+		
+		//face name
+		for (var i=12; i<edge.length; i++)
+		{
+			edgeFaceA[i] = nameFromLetter(edge[i][0].substring(0,1));
+			edgeFaceB[i] = nameFromLetter(edge[i][1].substring(0,1));
+			edgeFaceName.push(edgeFaceA[i]+"-"+edgeFaceB[i]);
+		}
+		if (document.getElementById("chFaceName").checked==true)
+			createRow(edgeFaceName.slice(12, edge.length)); //##
+		
+		//color name
+		for (var i=12; i<edge.length; i++)
+		{
+			edgeFaceA[i] = colorNameFromLetter(edge[i][0].substring(0,1));
+			edgeFaceB[i] = colorNameFromLetter(edge[i][1].substring(0,1));
+			edgeColorName.push(edgeFaceA[i]+"-"+edgeFaceB[i]);
+		}
+		if (document.getElementById("chColorName").checked==true)
+			createRow(edgeColorName.slice(12, edge.length)); //##
+		
+		//colors
+		if (document.getElementById("chColors").checked==true)
+		{
+			tableRows = document.getElementById("model_table").rows.length;
+			var strTable = "";
+			strTable += "<tr>"
+			strTable += "</tr>";
+			$('#model_table').append(strTable);
+			for (var i=edgeFaceLetter.length-1; i>=12; i--)
+			{
+				edgeCreateCanvas(hexCodeColor(colorNameFromLetter(edge[i][0].substring(0,1))),
+				hexCodeColor(colorNameFromLetter(edge[i][1].substring(0,1))),tableRows);
+			}
+		}
+		
+		//others
+		for (var i=12; i<edge.length; i++)
+		{
+			edgeFaceA[i] = othersFromLetter(edge[i][0].substring(0,1));
+			edgeFaceB[i] = othersFromLetter(edge[i][1].substring(0,1));
+			edgeOtherChar.push(edgeFaceA[i]+edgeFaceB[i]);
+		}
+		if (document.getElementById("chOthers").checked==true)	
+			createRow(edgeOtherChar.slice(12, edge.length)); //##
+		
+		//pictures
+		if (document.getElementById("chPictures").checked==true || document.getElementById("radSecondTech").checked==true)
+		{
+			tableRows = document.getElementById("model_table").rows.length;
+			var strTable = "";
+			strTable += "<tr>"
+			strTable += "</tr>";
+			$('#model_table').append(strTable);
+			for (var i=edgeFaceLetter.length-1; i>=12; i--)
+				createImage(picSrcFromLetter(edgeFaceLetter[i]),tableRows);
+		}
+	}
+	
+}
+
+
+
+function memCorner()
+{
+	var cornerFaceLetter = new Array();
+	var cornerFaceName = new Array();
+	var cornerColorName = new Array();
+	var cornerColors = new Array();
+	var cornerPictures = new Array();
+	var cornerOtherChar = new Array();
+	
+	var cornerFaceA = new Array();
+	var cornerFaceB = new Array();
+	var cornerFaceC = new Array();
+	
+	var title = ["1st".bold(),"2nd".bold(),"3rd".bold(),"4th".bold(),"5th".bold(),"6th".bold(),
+				"7th".bold(),"8th".bold(),"9th".bold(),"10th".bold(),"11th".bold(),"12th".bold()];
+	
+	createRow(["<br>"]);
+	createRow(["<br>"]);
+	createRow(["Corner Sequence: ".bold()]);
+	createRow(["<br>"]);
+	if (corner.length<6)
+		createRow(title.slice(0,corner.length));
+	else
+		createRow(title.slice(0,6));
+	
+	//face letter
+	for (var i=0; i<corner.length; i++)
+	{
+		if (i==6)
+			break;
+		cornerFaceA[i] = corner[i][0].substring(0,1);
+		cornerFaceB[i] = corner[i][1].substring(0,1);
+		cornerFaceC[i] = corner[i][2].substring(0,1);
+		cornerFaceLetter.push(cornerFaceA[i]+cornerFaceB[i]+cornerFaceC[i]);
+	}
+	if (document.getElementById("chFaceLetter").checked==true)
+		createRow(cornerFaceLetter);
+	
+	if (corner.length>6)
+	{
+		for (var i=6; i<corner.length; i++)
+		{
+			cornerFaceA[i] = corner[i][0].substring(0,1);
+			cornerFaceB[i] = corner[i][1].substring(0,1);
+			cornerFaceC[i] = corner[i][2].substring(0,1);
+			cornerFaceLetter.push(cornerFaceA[i]+cornerFaceB[i]+cornerFaceC[i]);
+		}
+	}
+	
+	
+	//face name
+	for (var i=0; i<corner.length; i++)
+	{
+		if (i==6)
+			break;
+		cornerFaceA[i] = nameFromLetter(corner[i][0].substring(0,1));
+		cornerFaceB[i] = nameFromLetter(corner[i][1].substring(0,1));
+		cornerFaceC[i] = nameFromLetter(corner[i][2].substring(0,1));
+		cornerFaceName.push(cornerFaceA[i]+"-"+cornerFaceB[i]+"-"+cornerFaceC[i]);
+	}
+	if (document.getElementById("chFaceName").checked==true)
+		createRow(cornerFaceName);
+	
+	if (corner.length>6)
+	{
+		for (var i=6; i<corner.length; i++)
+		{
+			cornerFaceA[i] = nameFromLetter(corner[i][0].substring(0,1));
+			cornerFaceB[i] = nameFromLetter(corner[i][1].substring(0,1));
+			cornerFaceC[i] = nameFromLetter(corner[i][2].substring(0,1));
+			cornerFaceName.push(cornerFaceA[i]+"-"+cornerFaceB[i]+"-"+cornerFaceC[i]);
+		}
+	
+	}
+	
+
+	//color name
+	for (var i=0; i<corner.length; i++)
+	{
+		if (i==6)
+			break;
+		cornerFaceA[i] = colorNameFromLetter(corner[i][0].substring(0,1));
+		cornerFaceB[i] = colorNameFromLetter(corner[i][1].substring(0,1));
+		cornerFaceC[i] = colorNameFromLetter(corner[i][2].substring(0,1));
+		cornerColorName.push(cornerFaceA[i]+"-"+cornerFaceB[i]+"-"+cornerFaceC[i]);
+	}
+	if (document.getElementById("chColorName").checked==true)
+		createRow(cornerColorName);
+	
+	if (corner.length>6)
+	{
+		for (var i=6; i<corner.length; i++)
+		{
+			cornerFaceA[i] = colorNameFromLetter(corner[i][0].substring(0,1));
+			cornerFaceB[i] = colorNameFromLetter(corner[i][1].substring(0,1));
+			cornerFaceC[i] = colorNameFromLetter(corner[i][2].substring(0,1));
+			cornerColorName.push(cornerFaceA[i]+"-"+cornerFaceB[i]+"-"+cornerFaceC[i]);
+		}
+	}
+	
+	
+	//colors
+	if (document.getElementById("chColors").checked==true)
+	{
+		var tableRows = document.getElementById("model_table").rows.length;
+		var strTable = "";
+		strTable += "<tr>"
+		strTable += "</tr>";
+		$('#model_table').append(strTable);
+		var maxCell;
+		if (cornerFaceLetter.length<6)
+			maxCell = cornerFaceLetter.length-1;
+		else
+			maxCell = 5;
+		for (var i=maxCell; i>=0; i--)
+		{
+			cornerCreateCanvas(hexCodeColor(colorNameFromLetter(corner[i][0].substring(0,1))),
+			hexCodeColor(colorNameFromLetter(corner[i][1].substring(0,1))),
+			hexCodeColor(colorNameFromLetter(corner[i][2].substring(0,1))),tableRows);
+		}
+	}
+	
+	
+	//other char
+	for (var i=0; i<corner.length; i++)
+	{
+		if (i==6)
+			break;
+		cornerFaceA[i] = othersFromLetter(corner[i][0].substring(0,1));
+		cornerFaceB[i] = othersFromLetter(corner[i][1].substring(0,1));
+		cornerFaceC[i] = othersFromLetter(corner[i][2].substring(0,1));
+		cornerOtherChar.push(cornerFaceA[i]+cornerFaceB[i]+cornerFaceC[i]);
+	}
+	if (document.getElementById("chOthers").checked==true)
+		createRow(cornerOtherChar);
+
+	if (corner.length>6)
+	{	
+		for (var i=6; i<corner.length; i++)
+		{
+			cornerFaceA[i] = othersFromLetter(corner[i][0].substring(0,1));
+			cornerFaceB[i] = othersFromLetter(corner[i][1].substring(0,1));
+			cornerFaceC[i] = othersFromLetter(corner[i][2].substring(0,1));
+			cornerOtherChar.push(cornerFaceA[i]+cornerFaceB[i]+cornerFaceC[i]);
+		}
+	}
+	
+	
+	//pictures
+	if (document.getElementById("chPictures").checked==true || document.getElementById("radSecondTech").checked==true)
+		{
+		var tableRows = document.getElementById("model_table").rows.length;
+		var strTable = "";
+		strTable += "<tr>"
+		strTable += "</tr>";
+		$('#model_table').append(strTable);
+		var maxCell;
+		if (cornerFaceLetter.length<6)
+			maxCell = cornerFaceLetter.length-1;
+		else
+			maxCell = 5;
+		for (var i=maxCell; i>=0; i--)
+				createImage(picSrcFromLetter(cornerFaceLetter[i]),tableRows);
+	}
+	
+	if (cornerFaceLetter.length>6)
+	{
+		createRow(["<br>"]);
+		createRow(title.slice(6,cornerFaceLetter.length));
+		if (document.getElementById("chFaceLetter").checked==true)
+			createRow(cornerFaceLetter.slice(6, corner.length)); //move the action to the proper line!
+		if (document.getElementById("chFaceName").checked==true)
+			createRow(cornerFaceName.slice(6, corner.length)); //##
+		if (document.getElementById("chColorName").checked==true)
+			createRow(cornerColorName.slice(6, corner.length)); //##
+		if (document.getElementById("chColors").checked==true)
+		{
+			tableRows = document.getElementById("model_table").rows.length;
+			var strTable = "";
+			strTable += "<tr>"
+			strTable += "</tr>";
+			$('#model_table').append(strTable);
+			for (var i=cornerFaceLetter.length-1; i>=6; i--)
+			{
+				cornerCreateCanvas(hexCodeColor(colorNameFromLetter(corner[i][0].substring(0,1))),
+				hexCodeColor(colorNameFromLetter(corner[i][1].substring(0,1))),
+				hexCodeColor(colorNameFromLetter(corner[i][2].substring(0,1))),tableRows);
+			}
+		}
+		if (document.getElementById("chOthers").checked==true)
+			createRow(cornerOtherChar.slice(6, corner.length)); //##
+		if (document.getElementById("chPictures").checked==true || document.getElementById("radSecondTech").checked==true)
+		{
+			tableRows = document.getElementById("model_table").rows.length;
+			var strTable = "";
+			strTable += "<tr>"
+			strTable += "</tr>";
+			$('#model_table').append(strTable);
+			for (var i=cornerFaceLetter.length-1; i>=6; i--)
+				createImage(picSrcFromLetter(cornerFaceLetter[i]),tableRows);
+		}
+	}
+
+}
+
+
+function nameFromLetter(letter)
+{
+	if (letter=="U")
+		return "up";
+	else if (letter=="R")
+		return "right";
+	else if (letter=="F")
+		return "front";
+	else if (letter=="D")
+		return "down";
+	else if (letter=="L")
+		return "left";
+	else if (letter=="B")
+		return "back";
+}
+
+function colorNameFromLetter(letter)
+{	
+	if (letter=="U")
+		return document.querySelector('#Uface').value;
+	else if (letter=="R")
+		return document.querySelector('#Rface').value;
+	else if (letter=="F")
+		return document.querySelector('#Fface').value;
+	else if (letter=="D")
+		return document.querySelector('#Dface').value;
+	else if (letter=="L")
+		return document.querySelector('#Lface').value;
+	else if (letter=="B")
+		return document.querySelector('#Bface').value;
+}
+
+function hexCodeColor(color)
+{
+	if (color=="white")
+		return "FFFFFF";
+	else if (color=="yellow")
+		return "FFFF00";
+	else if (color=="red")
+		return "FF0000";
+	else if (color=="orange")
+		return "FFA500";
+	else if (color=="blue")
+		return "0000FF";
+	else if (color=="green")
+		return "00B050";
+}
+
+function othersFromLetter(letter)
+{	
+	if (letter=="U")
+		return document.getElementById("textU").value;
+	else if (letter=="R")
+		return document.getElementById("textR").value;
+	else if (letter=="F")
+		return document.getElementById("textF").value;
+	else if (letter=="D")
+		return document.getElementById("textD").value;
+	else if (letter=="L")
+		return document.getElementById("textL").value;
+	else if (letter=="B")
+		return document.getElementById("textB").value;
+}
+
+function othersFromLetters2(letter)
+{
+	if (letter=="U1")
+		return document.getElementById("textU1").value;
+	else if (letter=="R1")
+		return document.getElementById("textR1").value;
+	else if (letter=="F1")
+		return document.getElementById("textF1").value;
+	else if (letter=="D1")
+		return document.getElementById("textD1").value;
+	else if (letter=="L1")
+		return document.getElementById("textL1").value;
+	else if (letter=="B1")
+		return document.getElementById("textB1").value;
+		
+	else if (letter=="U2")
+		return document.getElementById("textU2").value;
+	else if (letter=="R2")
+		return document.getElementById("textR2").value;
+	else if (letter=="F2")
+		return document.getElementById("textF2").value;
+	else if (letter=="D2")
+		return document.getElementById("textD2").value;
+	else if (letter=="L2")
+		return document.getElementById("textL2").value;
+	else if (letter=="B2")
+		return document.getElementById("textB2").value;
+		
+	else if (letter=="U3")
+		return document.getElementById("textU3").value;
+	else if (letter=="R3")
+		return document.getElementById("textR3").value;
+	else if (letter=="F3")
+		return document.getElementById("textF3").value;
+	else if (letter=="D3")
+		return document.getElementById("textD3").value;
+	else if (letter=="L3")
+		return document.getElementById("textL3").value;
+	else if (letter=="B3")
+		return document.getElementById("textB3").value;
+		
+	else if (letter=="U4")
+		return document.getElementById("textU4").value;
+	else if (letter=="R4")
+		return document.getElementById("textR4").value;
+	else if (letter=="F4")
+		return document.getElementById("textF4").value;
+	else if (letter=="D4")
+		return document.getElementById("textD4").value;
+	else if (letter=="L4")
+		return document.getElementById("textL4").value;
+	else if (letter=="B4")
+		return document.getElementById("textB4").value;
+		
+	else if (letter=="U6")
+		return document.getElementById("textU6").value;
+	else if (letter=="R6")
+		return document.getElementById("textR6").value;
+	else if (letter=="F6")
+		return document.getElementById("textF6").value;
+	else if (letter=="D6")
+		return document.getElementById("textD6").value;
+	else if (letter=="L6")
+		return document.getElementById("textL6").value;
+	else if (letter=="B6")
+		return document.getElementById("textB6").value;
+		
+	else if (letter=="U7")
+		return document.getElementById("textU7").value;
+	else if (letter=="R7")
+		return document.getElementById("textR7").value;
+	else if (letter=="F7")
+		return document.getElementById("textF7").value;
+	else if (letter=="D7")
+		return document.getElementById("textD7").value;
+	else if (letter=="L7")
+		return document.getElementById("textL7").value;
+	else if (letter=="B7")
+		return document.getElementById("textB7").value;
+		
+	else if (letter=="U8")
+		return document.getElementById("textU8").value;
+	else if (letter=="R8")
+		return document.getElementById("textR8").value;
+	else if (letter=="F8")
+		return document.getElementById("textF8").value;
+	else if (letter=="D8")
+		return document.getElementById("textD8").value;
+	else if (letter=="L8")
+		return document.getElementById("textL8").value;
+	else if (letter=="B8")
+		return document.getElementById("textB8").value;
+		
+	else if (letter=="U9")
+		return document.getElementById("textU9").value;
+	else if (letter=="R9")
+		return document.getElementById("textR9").value;
+	else if (letter=="F9")
+		return document.getElementById("textF9").value;
+	else if (letter=="D9")
+		return document.getElementById("textD9").value;
+	else if (letter=="L9")
+		return document.getElementById("textL9").value;
+	else if (letter=="B9")
+		return document.getElementById("textB9").value;
+						
+}
+
+function picSrcFromLetter(letter)
+{	
+	if (letter=="UF")
+		return 'pic/UF.png';
+	else if (letter=="UL")
+		return 'pic/UL.png';
+	else if (letter=="UB")
+		return 'pic/UB.png';
+	else if (letter=="FU")
+		return 'pic/FU.png';
+	else if (letter=="FR")
+		return 'pic/FR.png';
+	else if (letter=="FL")
+		return 'pic/FL.png';
+	else if (letter=="FD")
+		return 'pic/FD.png';
+	else if (letter=="RF")
+		return 'pic/RF.png';
+	else if (letter=="RB")
+		return 'pic/RB.png';
+	else if (letter=="RD")
+		return 'pic/RD.png';
+	else if (letter=="DR")
+		return 'pic/DR.png';
+	else if (letter=="DF")
+		return 'pic/DF.png';
+	else if (letter=="DL")
+		return 'pic/DL.png';
+	else if (letter=="DB")
+		return 'pic/DB.png';
+	else if (letter=="LU")
+		return 'pic/LU.png';
+	else if (letter=="LF")
+		return 'pic/LF.png';
+	else if (letter=="LD")
+		return 'pic/LD.png';
+	else if (letter=="LB")
+		return 'pic/LB.png';
+	else if (letter=="BU")
+		return 'pic/BU.png';
+	else if (letter=="BR")
+		return 'pic/BR.png';
+	else if (letter=="BD")
+		return 'pic/BD.png';
+	else if (letter=="BL")
+		return 'pic/BL.png';
+	
+	else if (letter=="URB")
+		return 'pic/URB.png';
+	else if (letter=="UFR")
+		return 'pic/UFR.png';
+	else if (letter=="ULF")
+		return 'pic/ULF.png';
+	else if (letter=="RUF")
+		return 'pic/RUF.png';
+	else if (letter=="RBU")
+		return 'pic/RBU.png';
+	else if (letter=="RDB")
+		return 'pic/RDB.png';
+	else if (letter=="RFD")
+		return 'pic/RFD.png';
+	else if (letter=="FUL")
+		return 'pic/FUL.png';
+	else if (letter=="FRU")
+		return 'pic/FRU.png';
+	else if (letter=="FDR")
+		return 'pic/FDR.png';
+	else if (letter=="FLD")
+		return 'pic/FLD.png';
+	else if (letter=="DFL")
+		return 'pic/DFL.png';
+	else if (letter=="DRF")
+		return 'pic/DRF.png';
+	else if (letter=="DBR")
+		return 'pic/DBR.png';
+	else if (letter=="DLB")
+		return 'pic/DLB.png';
+	else if (letter=="LFU")
+		return 'pic/LFU.png';
+	else if (letter=="LDF")
+		return 'pic/LDF.png';
+	else if (letter=="LBD")
+		return 'pic/LBD.png';
+	else if (letter=="BUR")
+		return 'pic/BUR.png';
+	else if (letter=="BDL")
+		return 'pic/BDL.png';
+	else if (letter=="BRD")
+		return 'pic/BRD.png';
+
+}
+
+function createRow(cycleArr)
+{
+	var strTable = "";
+	strTable += "<tr>"
+	for(var j = 0; j < cycleArr.length; j++) {
+		strTable += "<td>";
+		strTable += cycleArr[j];
+		strTable += "</td>";
+	}
+	strTable += "</tr>";
+	$('#model_table').append(strTable);
+}
+
+
+function createImage(imgSrc, rowNo)
+{
+    var firstRow=document.getElementById("model_table").rows[rowNo];
+    var x=firstRow.insertCell(0);
+
+    var img = document.createElement('img');
+    img.src = imgSrc;
+	img.setAttribute("width", "180");
+	img.setAttribute("height", "135");
+    x.appendChild(img);
+}
+
+//multiple colors in 1 cell!
+function edgeCreateCanvas(colorCode1, colorCode2, rowNo)
+{
+	var firstRow=document.getElementById("model_table").rows[rowNo];
+    var x=firstRow.insertCell(0);
+
+	var canv = document.createElement("CANVAS");
+	canv.width = 200;
+	canv.height = 40;
+	var ctx = canv.getContext("2d");
+	ctx.fillStyle = "#"+colorCode2;
+	ctx.fillRect(canv.width/2+10, 10, 20, 20);
+	ctx.strokeStyle = "#000000";
+	ctx.strokeRect(canv.width/2+10, 10, 20, 20);
+	
+	ctx.fillStyle = "#"+colorCode1;
+	ctx.fillRect(canv.width/2-30, 10, 20, 20);
+	ctx.strokeStyle = "#000000";
+	ctx.strokeRect(canv.width/2-30, 10, 20, 20);
+	x.appendChild(canv);
+}
+
+
+function cornerCreateCanvas(colorCode1, colorCode2, colorCode3, rowNo)
+{
+	var firstRow=document.getElementById("model_table").rows[rowNo];
+    var x=firstRow.insertCell(0);
+
+	var canv = document.createElement("CANVAS");
+	canv.width = 200;
+	canv.height = 40;
+	var ctx = canv.getContext("2d");
+	ctx.fillStyle = "#"+colorCode3;
+	ctx.fillRect(canv.width/2+20, 10, 20, 20);
+	ctx.strokeStyle = "#000000";
+	ctx.strokeRect(canv.width/2+20, 10, 20, 20);
+	
+	ctx.fillStyle = "#"+colorCode2;
+	ctx.fillRect(canv.width/2-15, 10, 20, 20);
+	ctx.strokeStyle = "#000000";
+	ctx.strokeRect(canv.width/2-15, 10, 20, 20);
+	
+	ctx.fillStyle = "#"+colorCode1;
+	ctx.fillRect(canv.width/2-50, 10, 20, 20);
+	ctx.strokeStyle = "#000000";
+	ctx.strokeRect(canv.width/2-50, 10, 20, 20);
+	x.appendChild(canv);
+}
+
+
+function clearTable()
+{
+	$("#model_table tr").remove();
+	reset();
+}
+
+function clearSequence()
+{
+	document.getElementById("edgeSeq").innerHTML = "";
+	document.getElementById("cornerSeq").innerHTML = "";
+	clearTable();
+}
+</script>
+</body>
+</html>
