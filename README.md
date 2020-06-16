@@ -6,6 +6,6 @@ It provides 2 techniques of memorizing with multiple display options; labels, co
 
 
 
-You can try the tool using this below link:
+You can try the tool by using this below link:
 
 https://mn-banjar.github.io/RubiksCubeBlindfolded/ 
