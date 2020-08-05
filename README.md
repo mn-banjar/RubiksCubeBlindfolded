@@ -11,5 +11,5 @@ You can try the tool by using this below link:
 https://mn-banjar.github.io/RubiksCubeBlindfolded/ 
 
 
-
+<br>
 The 3D animated cube is from this repository https://github.com/TWal/rubik.js developed by Théophile Wallez
