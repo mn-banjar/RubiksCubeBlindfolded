@@ -222,6 +222,10 @@
 	<table id="model_table" align="center" width="100%">
 
 	</table>
+	<br><br>
+		<div id="parityDiv" style="display:none">
+			Odd number of swappig, you have to apply the parity algorithm
+		</div>
 </div>
 
 <script>
@@ -346,6 +350,7 @@ function reset()
 	document.getElementById("rotation").innerHTML = "" + rotations;
 	edgeCount = 0;
 	cornerCount = 0;
+	document.getElementById('parityDiv').style.display = 'none';
 	restart();
 }			
 
@@ -910,7 +915,10 @@ function solveEdge()
 						rubiksCube[2][2] = copyCube[1][2];
 					}
 					if (cornerCount==0)
+					{
 						parityAlgorithm();
+						document.getElementById('parityDiv').style.display = 'block';
+					}
 					
 					console.log("The edge is solved !");
 					console.log(rubiksCube);
@@ -1059,7 +1067,10 @@ function solveCorner()
 						rubiksCube[4][1] = copyCube[5][1];
 					}
 					if (edgeCount==0)
+					{
 						parityAlgorithm();
+						document.getElementById('parityDiv').style.display = 'block';
+					}
 					
 					console.log("The corners are solved !");
 					
@@ -2306,6 +2317,7 @@ function clearSequence()
 {
 	edgeCount = 0;
 	cornerCount = 0;
+	document.getElementById('parityDiv').style.display = 'none';
 	document.getElementById("edgeSeq").innerHTML = "";
 	document.getElementById("cornerSeq").innerHTML = "";
 	clearTable();
