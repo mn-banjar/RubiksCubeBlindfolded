@@ -328,6 +328,8 @@ var cubeCopy;
 var rotations = new Array();
 var edge = new Array();
 var corner = new Array();
+var edgeCount = 0;
+var cornerCount = 0;
 
 function reset()
 {
@@ -342,6 +344,8 @@ function reset()
 	edge = [];
 	corner = [];
 	document.getElementById("rotation").innerHTML = "" + rotations;
+	edgeCount = 0;
+	cornerCount = 0;
 	restart();
 }			
 
@@ -860,15 +864,14 @@ function solveEdge()
 		console.log("The edge is already solved!");
 	else
 	{
-		var count = 0;
 		var buffer;
 		
 		if (((rubiksCube[0][5]=="U6" && rubiksCube[1][1]=="R2") || (rubiksCube[0][5]=="R2" && rubiksCube[1][1]=="U6")))
 		{
 			buffer = edgeBufferChange();
-			count++;
+			edgeCount++;
 			console.log(rubiksCube);
-			console.log(count);
+			console.log(edgeCount);
 			console.log("####\n");
 		}
 		
@@ -893,7 +896,7 @@ function solveEdge()
 					rubiksCube[0][5] = "U6";
 					rubiksCube[1][1] = "R2";
 					
-					if (!(count%2==0))
+					if (!(edgeCount%2==0))
 					{
 						var copyCube = rubiksCube.map(function(arr) {
 							return arr.slice();
@@ -906,8 +909,12 @@ function solveEdge()
 						rubiksCube[1][0] = copyCube[5][0];
 						rubiksCube[2][2] = copyCube[1][2];
 					}
+					if (cornerCount==0)
+						parityAlgorithm();
+					
 					console.log("The edge is solved !");
 					console.log(rubiksCube);
+					
 					if (document.getElementById('radFirstTech').checked)
 						memEdge();
 					else if (document.getElementById('radSecondTech').checked)
@@ -971,10 +978,10 @@ function solveEdge()
 				
 				console.log("prev buffer: " + prevBuffer);
 				console.log("new buffer: " + buffer);				
-				count++;
+				edgeCount++;
 				
 				console.log(rubiksCube);
-				console.log(count);
+				console.log(edgeCount);
 				console.log("####\n");
 				
 			}
@@ -1000,7 +1007,7 @@ function solveCorner()
 	{
 		console.log("SOLVING THE CORNERS:");
 		console.log(rubiksCube);
-		var count = 0;
+		
 		var cornerBuffer;
 		
 		if ((rubiksCube[4][0]=="L1" && rubiksCube[0][0]=="U1" && rubiksCube[5][2]=="B3") || 
@@ -1009,9 +1016,9 @@ function solveCorner()
 		{
 			console.log("beganing buffer changing");
 			cornerBuffer = cornecrBufferChange();
-			count++;
+			cornerCount++;
 			console.log(rubiksCube);
-			console.log(count);
+			console.log(cornerCount);
 			console.log("####\n");
 		}
 		if (!((rubiksCube[4][0]=="L1" && rubiksCube[0][0]=="U1" && rubiksCube[5][2]=="B3") || 
@@ -1040,7 +1047,7 @@ function solveCorner()
 					
 					console.log(rubiksCube);
 					
-					if (!(count%2==0))
+					if (!(cornerCount%2==0))
 					{
 						var copyCube = rubiksCube.map(function(arr) {
 							return arr.slice();
@@ -1051,7 +1058,11 @@ function solveCorner()
 						rubiksCube[0][3] = copyCube[0][1];
 						rubiksCube[4][1] = copyCube[5][1];
 					}
+					if (edgeCount==0)
+						parityAlgorithm();
+					
 					console.log("The corners are solved !");
+					
 					if (document.getElementById('radFirstTech').checked)
 						memCorner();
 					else if (document.getElementById('radSecondTech').checked)
@@ -1123,10 +1134,10 @@ function solveCorner()
 				
 				console.log("prev buffer: " + prevBuffer);
 				console.log("new buffer: " + cornerBuffer);				
-				count++;
+				cornerCount++;
 				
 				console.log(rubiksCube);
-				console.log(count);
+				console.log(cornerCount);
 				console.log("####\n");
 				
 			}
@@ -1421,7 +1432,31 @@ function cornecrBufferChange()
 	return cornerBuffer;
 }
 
-
+function parityAlgorithm()
+{
+	if (!(edgeCount%2==0) || !(cornerCount%2==0))
+	{
+		var copyCube = rubiksCube.map(function(arr) {
+			return arr.slice();
+		});
+		
+		rubiksCube[0][2] = copyCube[0][8];
+		rubiksCube[5][0] = copyCube[1][0];
+		rubiksCube[1][2] = copyCube[2][2];
+		
+		rubiksCube[0][8] = copyCube[0][2];
+		rubiksCube[1][0] = copyCube[5][0];
+		rubiksCube[2][2] = copyCube[1][2];
+		
+		
+		rubiksCube[0][1] = copyCube[0][3];
+		rubiksCube[5][1] = copyCube[4][1];
+		
+		rubiksCube[0][3] = copyCube[0][1];
+		rubiksCube[4][1] = copyCube[5][1];
+	}
+}
+	
 
 //###############
 //memorizing techniques
@@ -2269,6 +2304,8 @@ function clearTable()
 
 function clearSequence()
 {
+	edgeCount = 0;
+	cornerCount = 0;
 	document.getElementById("edgeSeq").innerHTML = "";
 	document.getElementById("cornerSeq").innerHTML = "";
 	clearTable();
